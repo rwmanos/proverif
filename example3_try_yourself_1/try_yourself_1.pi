@@ -1,0 +1,85 @@
+(*
+    This is from the class on proverif syntax, slide 37 on the presentation.
+*)
+
+free net.                                           (* the public channel *)
+free msg.                                           (* message tags *)
+free spy.                                           (* the name of the compromised agent *)
+
+(* private channels for agent initialization *)
+(* proverif doesn`t have parameterized processes (???) *)
+(* and so agents need to get their initial data as input over a trusted channel *)
+private free iid, ird.                              (* acronyms for initial initiator data and initial responder data *)
+
+(* the cryptographic constructors *)
+fun pencrypt/2.                                     (* public key encryption *)
+fun sign/2.                                         (* digital signing *)
+fun enc/1.                                          (* extracts encryption key from a key-pair *)
+fun dec/1.                                          (* extracts decryption key from a key-pair *)
+
+(* the cryptographic destructors *)
+reduc pdecrypt(pencrypt(x, enc(y)), dec(y)) = x.    (* public key decryption *)
+reduc unsign(sign(x, enc(y)), dec(y)) = x.          (* check signature *)
+
+(* constructors that map agents to their secret keypairs *)
+private fun pubkeypair/1.
+private fun signkeypair/1.
+
+(* lookup of public keys *)
+reduc pubkey(agent) = enc(pubkeypair(agent)).       (* the public key used for encryption *)
+reduc unsignkey(agent) = dec(signkeypair(agent)).   (* the public key used for unsigning (checking signature) *)
+
+(* the queries *)
+query attacker: flagA.
+query attacker: flagB.
+
+(* the initiator process *)
+let initiator =
+    in(iid, (a, sa));                               (* get agent name and private signing key - see line 69 *)
+    !                                               (* replicate to model arbitrary no. of sessions *)
+    in(net, b);                                     (* get responder`s name, perhaps as user input *)
+    if a<>b then                                    (* if we received message from agent b *)
+        let pb = pubkey(b) in                       (* get public key of b *)
+            new m;
+            (
+                if b <> spy then
+                    new flagA;
+                    out(m, flagA)
+            ) |
+            let signed = sign((msg, m), sa) in
+                out(net, (a, b, pencrypt(signed, pb))).
+
+(* the responder process *)
+let responder =
+    in(ird, (b, db));                               (* get agent name and private decryption key - see line 70 *)
+    in(net, (a, =b, encrypted));                    (* get data from initiator - see line 50 *)
+    let va = unsignkey(a) in
+        let signed = pdecrypt(encrypted, db) in
+            let (=msg, m) = unsign(signed, va) in
+                if a <> spy then
+                    new flagB;
+                    out(m, flagB).
+
+
+(* The initializer process. *)
+let initializer =
+    new agent;                                      (* generate agent name *)
+    let pkp = pubkeypair(agent) in                  (* compute public encryption keypair *)
+        let skp = signkeypair(agent) in             (* compute signing keypair *)
+            out(iid, (agent, enc(skp)));            (* launch initiator role *)
+            out(ird, (agent, dec(pkp)));            (* launch responder role *)
+            out(net, (agent, enc(pkp), dec(skp))).  (* publish the public data *)
+
+(* The compromised agent. *)
+let compromised =
+    let pkp = pubkeypair(spy) in                    (* compute public encryption keypair *)
+    let skp = signkeypair(spy) in                   (* compute signing keypair *)
+        out(net, (pkp, skp)).                       (* publish the keypairs to model compromise *)
+
+(* The system. *)
+process
+    !initiator |                                    (* initiators *)
+    !responder |                                    (* responders *)
+    !initializer |                                  (* launch the system *)
+    compromised                                     (* the spy *)
+
