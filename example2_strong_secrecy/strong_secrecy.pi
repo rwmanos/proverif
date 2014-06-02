@@ -1,0 +1,16 @@
+(*
+    Example for strong secrecy (non-interference).
+    This query fails! The problem is that deterministic encryption is used.
+    The attacker gets encrypt(x, k) and encrypt(y, k) and tests these for equality.
+*)
+
+fun encrypt/2.
+reduc decrypt(encrypt(x, y), y) = x.
+
+free net.
+private free x,y.
+noninterf x, y.
+
+process
+    new k;
+    (out(net, encrypt(x, k)) | out(net, encrypt(y, k)))
