@@ -61,7 +61,7 @@ let responder =
                     out(m, flagB).
 
 
-(* The initializer process. *)
+(* the initializer process *)
 let initializer =
     new agent;                                      (* generate agent name *)
     let pkp = pubkeypair(agent) in                  (* compute public encryption keypair *)
@@ -70,13 +70,13 @@ let initializer =
             out(ird, (agent, dec(pkp)));            (* launch responder role *)
             out(net, (agent, enc(pkp), dec(skp))).  (* publish the public data *)
 
-(* The compromised agent. *)
+(* the compromised agent *)
 let compromised =
     let pkp = pubkeypair(spy) in                    (* compute public encryption keypair *)
-    let skp = signkeypair(spy) in                   (* compute signing keypair *)
-        out(net, (pkp, skp)).                       (* publish the keypairs to model compromise *)
+        let skp = signkeypair(spy) in               (* compute signing keypair *)
+            out(net, (pkp, skp)).                   (* publish the keypairs to model compromise *)
 
-(* The system. *)
+(* the system *)
 process
     !initiator |                                    (* initiators *)
     !responder |                                    (* responders *)
