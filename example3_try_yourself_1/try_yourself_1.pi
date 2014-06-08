@@ -38,7 +38,7 @@ let initiator =
     in(iid, (a, sa));                               (* get agent name and private signing key - see line 69 *)
     !                                               (* replicate to model arbitrary no. of sessions *)
     in(net, b);                                     (* get responder`s name, perhaps as user input *)
-    if a<>b then                                    (* if we received message from agent b *)
+    if a <> b then                                  (* if we received message from agent b *)
         let pb = pubkey(b) in                       (* get public key of b *)
             new m;
             (
