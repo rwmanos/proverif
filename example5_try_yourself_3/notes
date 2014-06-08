@@ -1,0 +1,4 @@
+Although the fix should be able to provide strong secrecy
+for secretA and secretB, proverif manages to find a way
+to prove that is not the case. Still searching why this is
+the case and why the fix is not working.
