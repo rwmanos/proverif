@@ -48,21 +48,20 @@ let initiator =
             ) |
             out(net, a);
             in(net, n);
-            out(net, pencrypt(sign((s, b, N), sa), encb)).
+            out(net, pencrypt(sign((s, b, n), sa), pb)).
 
 let responder =
     in(initialResponderData, (b, db));
-    in(net, (signedencrypted));
-    let signed = pdecrypt(signedencrypted, db) in
-        let (s, =b, =N) = unsign(signed, unsignkey(a)) in
-        if a <> b then
-            new n;
-            out(net, n);
-            in(net, (encrypted));
-            let (s, =n) = pdecrypt(encrypted, db) in
-                if a <> spy then
-                    new flagB;
-                    out(s, flagB).
+    in(net,a);
+    if a <> b then
+        new n;
+        out(net, n);
+        in(net, (signedencrypted));
+        let signed = pdecrypt(signedencrypted, db) in
+            let (s, =b, =n) = unsign(signed, unsignkey(a)) in
+                    if a <> spy then
+                        new flagB;
+                        out(s, flagB).
 
 let compromised =
     let pkp = pubkeypair(spy) in
